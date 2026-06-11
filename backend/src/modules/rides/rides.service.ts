@@ -13,7 +13,7 @@ const transitions: Record<RideStatus, RideStatus[]> = {
 };
 
 export class RidesService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) { }
 
   async list(actor: AuthUser) {
     if (actor.role === "ADMIN") {
@@ -24,9 +24,28 @@ export class RidesService {
       if (!passenger) throw notFound("Passenger profile not found");
       return this.prisma.ride.findMany({ where: { passengerProfileId: passenger.id }, include: this.include(), orderBy: { requestedAt: "desc" } });
     }
-    const driver = await this.prisma.driverProfile.findUnique({ where: { userId: actor.id } });
+    const driver = await this.prisma.driverProfile.findUnique({
+      where: { userId: actor.id }
+    });
+
     if (!driver) throw notFound("Driver profile not found");
-    return this.prisma.ride.findMany({ where: { driverProfileId: driver.id }, include: this.include(), orderBy: { requestedAt: "desc" } });
+
+    return this.prisma.ride.findMany({
+      where: {
+        OR: [
+          {
+            status: "REQUESTED"
+          },
+          {
+            driverProfileId: driver.id
+          }
+        ]
+      },
+      include: this.include(),
+      orderBy: {
+        requestedAt: "desc"
+      }
+    });
   }
 
   getById(rideId: string) {

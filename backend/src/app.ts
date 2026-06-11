@@ -23,7 +23,15 @@ import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js"
 export const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+app.use(
+    cors({
+        origin: [
+            "http://localhost:3000",
+            "http://172.26.112.1:3000",
+        ],
+        credentials: true,
+    })
+);
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: "1mb" }));

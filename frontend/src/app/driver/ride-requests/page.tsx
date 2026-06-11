@@ -1,5 +1,6 @@
 "use client";
 
+import { connectSocket } from "@/lib/socket";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +19,31 @@ export default function DriverRideRequestsPage() {
   const { setActiveRide } = useRideStore();
   const showToast = useUiStore((state) => state.toast);
   const router = useRouter();
+
+  useEffect(() => {
+    const socket = connectSocket();
+
+    // Mark driver online
+    socket.emit("driver:online");
+
+    // Listen for new ride requests
+    socket.on("ride:requested", (ride) => {
+      console.log("NEW RIDE REQUEST:", ride);
+
+      refetch();
+
+      showToast({
+        title: "New Ride Request",
+        description: `${ride.pickupLocation} → ${ride.dropoffLocation}`,
+        type: "info",
+      });
+    });
+
+    return () => {
+      socket.emit("driver:offline");
+      socket.off("ride:requested");
+    };
+  }, [refetch, showToast]);
 
   // Filter for pending ride requests
   const pendingRequests = rides?.filter((ride) => ride.status === "REQUESTED") || [];

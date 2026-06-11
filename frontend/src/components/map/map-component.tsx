@@ -46,21 +46,28 @@ export default function MapComponent({
   // Map Initialization
   useEffect(() => {
     const mapContainer = document.getElementById("campus-ride-map");
-    if (!mapContainer || map) return;
 
-    // Center on campus coordinates (e.g. IIT Delhi coordinates)
-    const initialMap = L.map("campus-ride-map").setView([28.545, 77.192], 15);
+    if (!mapContainer) return;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(initialMap);
+    const initialMap = L.map(mapContainer).setView(
+      [28.545, 77.192],
+      15
+    );
+
+    L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        attribution:
+          "&copy; OpenStreetMap contributors",
+      }
+    ).addTo(initialMap);
 
     setMap(initialMap);
 
     return () => {
       initialMap.remove();
     };
-  }, [map]);
+  }, []);
 
   // Update Pickup Marker
   useEffect(() => {

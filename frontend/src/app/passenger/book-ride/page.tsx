@@ -1,5 +1,7 @@
 "use client";
 
+
+import { connectSocket } from "@/lib/socket";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Navigation, ArrowRight, DollarSign, Milestone } from "lucide-react";
@@ -90,6 +92,14 @@ export default function BookRidePage() {
         distanceKm: distance || 0.8,
       });
 
+      const socket = connectSocket();
+
+      console.log("Ride created:", res.id);
+      console.log("Socket connected:", socket.connected);
+
+      socket.emit("ride:requested", res.id);
+
+      console.log("ride:requested emitted");
       showToast({ title: "Ride Requested!", description: "Waiting for an online driver to accept.", type: "success" });
       router.push("/passenger/active-ride");
     } catch (err: any) {
