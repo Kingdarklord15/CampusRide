@@ -1,0 +1,14 @@
+import { Router } from "express";
+import { prisma } from "../../config/prisma.js";
+import { authenticate } from "../../middleware/auth.middleware.js";
+import { authorize } from "../../middleware/role.middleware.js";
+import { validate } from "../../middleware/validation.middleware.js";
+import { VehiclesController } from "./vehicles.controller.js";
+import { VehiclesService } from "./vehicles.service.js";
+import { updateVehicleSchema, vehicleSchema } from "./vehicles.validator.js";
+const controller = new VehiclesController(new VehiclesService(prisma));
+export const vehiclesRoutes = Router();
+vehiclesRoutes.use(authenticate, authorize("DRIVER"));
+vehiclesRoutes.get("/me", controller.getMine);
+vehiclesRoutes.post("/", validate(vehicleSchema), controller.add);
+vehiclesRoutes.patch("/me", validate(updateVehicleSchema), controller.update);

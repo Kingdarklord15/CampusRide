@@ -1,0 +1,14 @@
+import { Router } from "express";
+import { prisma } from "../../config/prisma.js";
+import { authenticate } from "../../middleware/auth.middleware.js";
+import { authorize } from "../../middleware/role.middleware.js";
+import { validate } from "../../middleware/validation.middleware.js";
+import { PassengersController } from "./passengers.controller.js";
+import { PassengersService } from "./passengers.service.js";
+import { updatePassengerSchema } from "./passengers.validator.js";
+const controller = new PassengersController(new PassengersService(prisma));
+export const passengersRoutes = Router();
+passengersRoutes.use(authenticate, authorize("PASSENGER"));
+passengersRoutes.get("/me", controller.me);
+passengersRoutes.patch("/me", validate(updatePassengerSchema), controller.update);
+passengersRoutes.get("/me/history", controller.history);

@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PASSENGER
+  DRIVER
+  ADMIN
+}
+
+enum DriverStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+  SUSPENDED
+}
+
+enum RideStatus {
+  REQUESTED
+  ACCEPTED
+  DRIVER_ARRIVING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum VehicleType {
+  E_RICKSHAW
+  CART
+  SHUTTLE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  MOCK_UPI
+  WALLET
+}
+
+enum NotificationType {
+  RIDE_REQUESTED
+  RIDE_ACCEPTED
+  RIDE_REJECTED
+  RIDE_STARTED
+  RIDE_COMPLETED
+  RIDE_CANCELLED
+  DRIVER_ARRIVING
+  PAYMENT_UPDATED
+  RATING_RECEIVED
+  SYSTEM_ALERT
+}
+
+enum FeedbackCategory {
+  RIDE_EXPERIENCE
+  DRIVER_BEHAVIOR
+  PAYMENT
+  SAFETY
+  APP_ISSUE
+  OTHER
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum RideScheduleStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  CONVERTED_TO_RIDE
+  EXPIRED
+}
+
+model User {
+  id               String             @id @default(uuid()) @db.Uuid
+  name             String
+  email            String             @unique
+  phone            String?            @unique
+  passwordHash     String
+  role             Role
+  isActive         Boolean            @default(true)
+  refreshTokenHash String?
+  lastLoginAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  passengerProfile PassengerProfile?
+  driverProfile    DriverProfile?
+  ratingsGiven     Rating[]
+  feedbacks        Feedback[]
+  notifications    Notification[]
+  rideChanges      RideStatusHistory[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model PassengerProfile {
+  id                    String         @id @default(uuid()) @db.Uuid
+  userId                String         @unique @db.Uuid
+  universityId          String?
+  defaultPickupLocation String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rides                 Ride[]
+  schedules             RideSchedule[]
+
+  @@index([universityId])
+}
+
+model DriverProfile {
+  id               String       @id @default(uuid()) @db.Uuid
+  userId           String       @unique @db.Uuid
+  licenseNumber    String       @unique
+  status           DriverStatus @default(OFFLINE)
+  currentLatitude  Decimal?     @db.Decimal(10, 7)
+  currentLongitude Decimal?     @db.Decimal(10, 7)
+  averageRating    Decimal      @default(0) @db.Decimal(3, 2)
+  totalRides       Int          @default(0)
+  totalEarnings    Decimal      @default(0) @db.Decimal(10, 2)
+  verifiedAt       DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle          Vehicle?
+  rides            Ride[]
+  ratingsReceived  Rating[]
+
+  @@index([status])
+  @@index([currentLatitude, currentLongitude])
+  @@index([averageRating])
+}
+
+model Vehicle {
+  id                 String        @id @default(uuid()) @db.Uuid
+  driverProfileId    String        @unique @db.Uuid
+  registrationNumber String        @unique
+  vehicleType        VehicleType
+  model              String?
+  color              String?
+  capacity           Int
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  driverProfile      DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+}
+
+model Ride {
+  id                 String              @id @default(uuid()) @db.Uuid
+  passengerProfileId String              @db.Uuid
+  driverProfileId    String?             @db.Uuid
+  pickupLocation     String
+  pickupLatitude     Decimal?            @db.Decimal(10, 7)
+  pickupLongitude    Decimal?            @db.Decimal(10, 7)
+  dropoffLocation    String
+  dropoffLatitude    Decimal?            @db.Decimal(10, 7)
+  dropoffLongitude   Decimal?            @db.Decimal(10, 7)
+  status             RideStatus          @default(REQUESTED)
+  fareAmount         Decimal?            @db.Decimal(10, 2)
+  distanceKm         Decimal?            @db.Decimal(8, 2)
+  requestedAt        DateTime            @default(now())
+  acceptedAt         DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  passengerProfile   PassengerProfile    @relation(fields: [passengerProfileId], references: [id], onDelete: Restrict)
+  driverProfile      DriverProfile?      @relation(fields: [driverProfileId], references: [id], onDelete: SetNull)
+  statusHistory      RideStatusHistory[]
+  rating             Rating?
+  feedback           Feedback?
+  payment            Payment?
+  schedule           RideSchedule?
+
+  @@index([passengerProfileId])
+  @@index([driverProfileId])
+  @@index([status])
+  @@index([requestedAt])
+  @@index([passengerProfileId, status])
+  @@index([driverProfileId, status])
+}
+
+model RideStatusHistory {
+  id              String     @id @default(uuid()) @db.Uuid
+  rideId          String     @db.Uuid
+  status          RideStatus
+  changedByUserId String?    @db.Uuid
+  note            String?
+  createdAt       DateTime   @default(now())
+  ride            Ride       @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  changedBy       User?      @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([rideId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Rating {
+  id              String        @id @default(uuid()) @db.Uuid
+  rideId          String        @unique @db.Uuid
+  passengerUserId String        @db.Uuid
+  driverProfileId String        @db.Uuid
+  score           Int
+  comment         String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  ride            Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  passengerUser   User          @relation(fields: [passengerUserId], references: [id], onDelete: Restrict)
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  @@index([passengerUserId])
+  @@index([driverProfileId])
+  @@index([score])
+}
+
+model Feedback {
+  id        String           @id @default(uuid()) @db.Uuid
+  rideId    String?          @unique @db.Uuid
+  userId    String           @db.Uuid
+  category  FeedbackCategory
+  message   String
+  status    FeedbackStatus   @default(OPEN)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  ride      Ride?            @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String
+  message   String
+  metadata  Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([readAt])
+  @@index([createdAt])
+}
+
+model Payment {
+  id                String        @id @default(uuid()) @db.Uuid
+  rideId            String        @unique @db.Uuid
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  method            PaymentMethod
+  status            PaymentStatus @default(PENDING)
+  providerReference String?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  ride              Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([method])
+  @@index([createdAt])
+}
+
+model RideSchedule {
+  id                 String             @id @default(uuid()) @db.Uuid
+  rideId             String?            @unique @db.Uuid
+  passengerProfileId String             @db.Uuid
+  pickupLocation     String
+  dropoffLocation    String
+  scheduledFor       DateTime
+  status             RideScheduleStatus @default(SCHEDULED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  ride               Ride?              @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  passengerProfile   PassengerProfile   @relation(fields: [passengerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([passengerProfileId])
+  @@index([scheduledFor])
+  @@index([status])
+}

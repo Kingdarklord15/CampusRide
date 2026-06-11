@@ -1,0 +1,14 @@
+import { Router } from "express";
+import { prisma } from "../../config/prisma.js";
+import { authenticate } from "../../middleware/auth.middleware.js";
+import { authorize } from "../../middleware/role.middleware.js";
+import { validate } from "../../middleware/validation.middleware.js";
+import { FeedbackController } from "./feedback.controller.js";
+import { FeedbackService } from "./feedback.service.js";
+import { createFeedbackSchema, feedbackStatusSchema } from "./feedback.validator.js";
+const controller = new FeedbackController(new FeedbackService(prisma));
+export const feedbackRoutes = Router();
+feedbackRoutes.use(authenticate);
+feedbackRoutes.post("/", validate(createFeedbackSchema), controller.submit);
+feedbackRoutes.get("/", authorize("ADMIN"), controller.list);
+feedbackRoutes.patch("/:feedbackId/status", authorize("ADMIN"), validate(feedbackStatusSchema), controller.updateStatus);

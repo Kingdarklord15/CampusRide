@@ -1,0 +1,13 @@
+import { Router } from "express";
+import { prisma } from "../../config/prisma.js";
+import { authenticate } from "../../middleware/auth.middleware.js";
+import { authorize } from "../../middleware/role.middleware.js";
+import { AnalyticsController } from "./analytics.controller.js";
+import { AnalyticsService } from "./analytics.service.js";
+const controller = new AnalyticsController(new AnalyticsService(prisma));
+export const analyticsRoutes = Router();
+analyticsRoutes.use(authenticate, authorize("ADMIN"));
+analyticsRoutes.get("/rides", controller.rides);
+analyticsRoutes.get("/drivers", controller.drivers);
+analyticsRoutes.get("/demand", controller.demand);
+analyticsRoutes.get("/overview", controller.overview);

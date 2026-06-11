@@ -1,0 +1,24 @@
+import type { Server, Socket } from "socket.io";
+import { prisma } from "../config/prisma.js";
+
+export const registerDriverSocket = (io: Server, socket: Socket) => {
+  socket.on("driver:online", async (payload?: { latitude?: number; longitude?: number }) => {
+    const user = socket.data.user;
+    if (user.role !== "DRIVER") return socket.emit("socket:error", { message: "Driver role required" });
+    const driver = await prisma.driverProfile.update({
+      where: { userId: user.id },
+      data: { status: "ONLINE", currentLatitude: payload?.latitude, currentLongitude: payload?.longitude }
+    });
+    socket.join("drivers:available");
+    socket.join(`driver:${driver.id}`);
+    io.to("role:admin").emit("driver:online", driver);
+  });
+
+  socket.on("driver:offline", async () => {
+    const user = socket.data.user;
+    if (user.role !== "DRIVER") return socket.emit("socket:error", { message: "Driver role required" });
+    const driver = await prisma.driverProfile.update({ where: { userId: user.id }, data: { status: "OFFLINE" } });
+    socket.leave("drivers:available");
+    io.to("role:admin").emit("driver:offline", driver);
+  });
+};

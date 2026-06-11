@@ -1,0 +1,13 @@
+import { Router } from "express";
+import { prisma } from "../../config/prisma.js";
+import { authenticate } from "../../middleware/auth.middleware.js";
+import { authorize } from "../../middleware/role.middleware.js";
+import { validate } from "../../middleware/validation.middleware.js";
+import { RatingsController } from "./ratings.controller.js";
+import { RatingsService } from "./ratings.service.js";
+import { createRatingSchema } from "./ratings.validator.js";
+const controller = new RatingsController(new RatingsService(prisma));
+export const ratingsRoutes = Router();
+ratingsRoutes.use(authenticate);
+ratingsRoutes.post("/", authorize("PASSENGER"), validate(createRatingSchema), controller.submit);
+ratingsRoutes.get("/driver/:driverProfileId", controller.byDriver);
