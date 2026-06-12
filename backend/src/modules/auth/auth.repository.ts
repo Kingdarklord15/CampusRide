@@ -1,7 +1,7 @@
 import type { PrismaClient, Role } from "@prisma/client";
 
 export class AuthRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) { }
 
   findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
@@ -18,9 +18,25 @@ export class AuthRepository {
     return this.prisma.user.create({
       data: {
         ...data,
-        passengerProfile: data.role === "PASSENGER" ? { create: {} } : undefined
+
+        passengerProfile:
+          data.role === "PASSENGER"
+            ? { create: {} }
+            : undefined,
+
+        driverProfile:
+          data.role === "DRIVER"
+            ? {
+              create: {
+                licenseNumber: `PENDING-${Date.now()}`
+              }
+            }
+            : undefined
       },
-      include: { passengerProfile: true, driverProfile: true }
+      include: {
+        passengerProfile: true,
+        driverProfile: true
+      }
     });
   }
 
