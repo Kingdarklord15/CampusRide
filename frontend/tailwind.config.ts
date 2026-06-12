@@ -6,31 +6,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        borderLight: "hsl(var(--border-light))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
-        muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" }
+        border: "var(--border)",
+        borderLight: "var(--border-light)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        primary: { DEFAULT: "var(--primary)", foreground: "var(--primary-foreground)" },
+        secondary: { DEFAULT: "var(--secondary)", foreground: "var(--secondary-foreground)" },
+        accent: { DEFAULT: "var(--accent)", foreground: "var(--accent-foreground)" },
+        muted: { DEFAULT: "var(--muted)", foreground: "var(--muted-foreground)" },
+        card: { DEFAULT: "var(--card)", foreground: "var(--card-foreground)" }
       },
       borderRadius: {
         none: "0px",
-        sm: "0px",
-        DEFAULT: "0px",
-        md: "0px",
-        lg: "0px",
-        xl: "0px",
-        "2xl": "0px",
-        "3xl": "0px",
-        full: "0px"
+        sm: "12px",
+        DEFAULT: "18px",
+        md: "18px",
+        lg: "24px",
+        xl: "28px",
+        "2xl": "28px",
+        "3xl": "32px",
+        full: "9999px"
       },
       boxShadow: {
         none: "none",
-        soft: "none"
+        soft: "0 4px 20px rgba(0, 0, 0, 0.2)",
+        glass: "0 0 0 1px rgba(255, 255, 255, 0.04), 0 10px 30px rgba(0, 0, 0, 0.4)"
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
-        body: ["var(--font-body)", "Georgia", "serif"],
+        display: ["var(--font-display)", "Inter", "system-ui", "sans-serif"],
+        body: ["var(--font-body)", "Inter", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"]
       }
     }

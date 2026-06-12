@@ -23,10 +23,27 @@ export class RidesService {
                 throw notFound("Passenger profile not found");
             return this.prisma.ride.findMany({ where: { passengerProfileId: passenger.id }, include: this.include(), orderBy: { requestedAt: "desc" } });
         }
-        const driver = await this.prisma.driverProfile.findUnique({ where: { userId: actor.id } });
+        const driver = await this.prisma.driverProfile.findUnique({
+            where: { userId: actor.id }
+        });
         if (!driver)
             throw notFound("Driver profile not found");
-        return this.prisma.ride.findMany({ where: { driverProfileId: driver.id }, include: this.include(), orderBy: { requestedAt: "desc" } });
+        return this.prisma.ride.findMany({
+            where: {
+                OR: [
+                    {
+                        status: "REQUESTED"
+                    },
+                    {
+                        driverProfileId: driver.id
+                    }
+                ]
+            },
+            include: this.include(),
+            orderBy: {
+                requestedAt: "desc"
+            }
+        });
     }
     getById(rideId) {
         return this.prisma.ride.findUniqueOrThrow({ where: { id: rideId }, include: this.include() });
@@ -35,13 +52,15 @@ export class RidesService {
         const passenger = await this.prisma.passengerProfile.findUnique({ where: { userId } });
         if (!passenger)
             throw notFound("Passenger profile not found");
-        return this.prisma.$transaction(async (tx) => {
+        const ride = await this.prisma.$transaction(async (tx) => {
             const ride = await tx.ride.create({ data: { ...data, passengerProfileId: passenger.id }, include: this.include() });
             await tx.rideStatusHistory.create({ data: { rideId: ride.id, status: "REQUESTED", changedByUserId: userId } });
             return ride;
         });
+        this.notifyStatusChange(ride);
+        return ride;
     }
-    assignDriver(actor, rideId, driverProfileId) {
+    async assignDriver(actor, rideId, driverProfileId) {
         if (actor.role !== "ADMIN")
             throw forbidden();
         return this.transition(rideId, "ACCEPTED", actor.id, { driverProfileId, acceptedAt: new Date() });
@@ -54,17 +73,17 @@ export class RidesService {
         await this.requireDriver(actor.id);
         return this.transition(rideId, "REJECTED", actor.id);
     }
-    cancel(actor, rideId, reason) {
+    async cancel(actor, rideId, reason) {
         return this.transition(rideId, "CANCELLED", actor.id, { cancelledAt: new Date(), cancellationReason: reason });
     }
-    arriving(actor, rideId) {
+    async arriving(actor, rideId) {
         return this.transition(rideId, "DRIVER_ARRIVING", actor.id);
     }
-    start(actor, rideId) {
+    async start(actor, rideId) {
         return this.transition(rideId, "IN_PROGRESS", actor.id, { startedAt: new Date() });
     }
     async complete(actor, rideId) {
-        return this.prisma.$transaction(async (tx) => {
+        const completed = await this.prisma.$transaction(async (tx) => {
             const ride = await tx.ride.findUnique({ where: { id: rideId } });
             if (!ride)
                 throw notFound("Ride not found");
@@ -83,12 +102,144 @@ export class RidesService {
             }
             return completed;
         });
+        this.notifyStatusChange(completed);
+        return completed;
     }
     statusHistory(rideId) {
         return this.prisma.rideStatusHistory.findMany({ where: { rideId }, orderBy: { createdAt: "asc" } });
     }
+    async notifyStatusChange(ride) {
+        try {
+            const passengerUserId = ride.passengerProfile?.userId;
+            const driverUserId = ride.driverProfile?.userId;
+            const passengerName = ride.passengerProfile?.user?.name || "Passenger";
+            const driverName = ride.driverProfile?.user?.name || "Driver";
+            // 1. Emit socket events
+            let ioInstance;
+            try {
+                const { getIO } = await import("../../sockets/socket.server.js");
+                ioInstance = getIO();
+            }
+            catch (e) {
+                // Socket server not initialized yet
+            }
+            if (ioInstance) {
+                const event = this.getSocketEventForStatus(ride.status);
+                ioInstance.to(`ride:${ride.id}`).emit(event, ride);
+                ioInstance.to("role:admin").emit(event, ride);
+                if (passengerUserId) {
+                    ioInstance.to(`user:${passengerUserId}`).emit(event, ride);
+                }
+                if (driverUserId) {
+                    ioInstance.to(`user:${driverUserId}`).emit(event, ride);
+                }
+                if (ride.status === "REQUESTED") {
+                    ioInstance.to("drivers:available").emit("ride:requested", ride);
+                }
+            }
+            // 2. Create database notifications
+            const notificationsService = new (await import("../notifications/notifications.service.js")).NotificationsService(this.prisma);
+            if (ride.status === "ACCEPTED") {
+                if (passengerUserId) {
+                    await notificationsService.create({
+                        userId: passengerUserId,
+                        type: "RIDE_ACCEPTED",
+                        title: "Ride Accepted",
+                        message: `Driver ${driverName} has accepted your ride request.`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+            }
+            else if (ride.status === "DRIVER_ARRIVING") {
+                if (passengerUserId) {
+                    await notificationsService.create({
+                        userId: passengerUserId,
+                        type: "DRIVER_ARRIVING",
+                        title: "Driver Arrived",
+                        message: `Your driver ${driverName} has arrived at the pickup location.`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+            }
+            else if (ride.status === "IN_PROGRESS") {
+                if (passengerUserId) {
+                    await notificationsService.create({
+                        userId: passengerUserId,
+                        type: "RIDE_STARTED",
+                        title: "Ride Started",
+                        message: `Your ride to ${ride.dropoffLocation} has started.`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+            }
+            else if (ride.status === "COMPLETED") {
+                if (passengerUserId) {
+                    await notificationsService.create({
+                        userId: passengerUserId,
+                        type: "RIDE_COMPLETED",
+                        title: "Ride Completed",
+                        message: `You have arrived at ${ride.dropoffLocation}. Thank you for riding!`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+            }
+            else if (ride.status === "CANCELLED") {
+                if (passengerUserId) {
+                    await notificationsService.create({
+                        userId: passengerUserId,
+                        type: "RIDE_CANCELLED",
+                        title: "Ride Cancelled",
+                        message: `Your ride has been cancelled.`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+                if (driverUserId) {
+                    await notificationsService.create({
+                        userId: driverUserId,
+                        type: "RIDE_CANCELLED",
+                        title: "Ride Cancelled",
+                        message: `The ride has been cancelled.`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+            }
+            else if (ride.status === "REJECTED") {
+                if (passengerUserId) {
+                    await notificationsService.create({
+                        userId: passengerUserId,
+                        type: "RIDE_REJECTED",
+                        title: "Ride Rejected",
+                        message: `Your ride request was rejected.`,
+                        metadata: { rideId: ride.id }
+                    });
+                }
+            }
+        }
+        catch (error) {
+            console.error("Error in notifyStatusChange:", error);
+        }
+    }
+    getSocketEventForStatus(status) {
+        switch (status) {
+            case "REQUESTED":
+                return "ride:requested";
+            case "ACCEPTED":
+            case "DRIVER_ARRIVING":
+                return "ride:accepted";
+            case "IN_PROGRESS":
+                return "ride:started";
+            case "COMPLETED":
+                return "ride:completed";
+            case "CANCELLED":
+                return "ride:cancelled";
+            case "REJECTED":
+                return "ride:rejected";
+            default:
+                return "ride:updated";
+        }
+    }
     async transition(rideId, next, userId, data = {}) {
-        return this.prisma.$transaction(async (tx) => {
+        const updated = await this.prisma.$transaction(async (tx) => {
             const ride = await tx.ride.findUnique({ where: { id: rideId } });
             if (!ride)
                 throw notFound("Ride not found");
@@ -103,6 +254,8 @@ export class RidesService {
             }
             return updated;
         });
+        this.notifyStatusChange(updated);
+        return updated;
     }
     ensureTransition(current, next) {
         if (!transitions[current].includes(next))

@@ -12,7 +12,13 @@ export class AuthService {
         if (existing)
             throw badRequest("Email is already registered");
         const passwordHash = await bcrypt.hash(input.password, env.BCRYPT_SALT_ROUNDS);
-        const user = await this.repo.createUser({ ...input, passwordHash });
+        const user = await this.repo.createUser({
+            name: input.name,
+            email: input.email,
+            phone: input.phone,
+            role: input.role,
+            passwordHash
+        });
         const tokens = await this.issueTokens(user.id, user.role);
         return { user: this.sanitize(user), ...tokens };
     }

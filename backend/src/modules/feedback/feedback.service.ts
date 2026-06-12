@@ -1,9 +1,9 @@
-import type { FeedbackStatus, PrismaClient } from "@prisma/client";
+import type { FeedbackCategory, FeedbackStatus, PrismaClient } from "@prisma/client";
 
 export class FeedbackService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  submit(userId: string, data: { rideId?: string; category: never; message: string }) {
+  submit(userId: string, data: { rideId?: string; category: FeedbackCategory; message: string }) {
     return this.prisma.feedback.create({ data: { ...data, userId } });
   }
 

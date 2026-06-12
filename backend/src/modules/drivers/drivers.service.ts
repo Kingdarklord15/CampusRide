@@ -3,7 +3,7 @@ import type { AuthUser } from "../../middleware/auth.middleware.js";
 import { forbidden, notFound } from "../../utils/errors.js";
 
 export class DriversService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) { }
 
   list() {
     return this.prisma.driverProfile.findMany({ include: { user: true, vehicle: true }, orderBy: { createdAt: "desc" } });
@@ -32,10 +32,32 @@ export class DriversService {
   }
 
   async setStatus(actor: AuthUser, status: DriverStatus) {
-    const profile = await this.prisma.driverProfile.findUnique({ where: { userId: actor.id } });
-    if (!profile) throw notFound("Driver profile not found");
-    return this.prisma.driverProfile.update({ where: { id: profile.id }, data: { status }, include: { vehicle: true } });
+    console.log("===== SET STATUS CALLED =====");
+    console.log("ACTOR:", actor);
+    console.log("REQUESTED STATUS:", status);
+
+    const profile = await this.prisma.driverProfile.findUnique({
+      where: { userId: actor.id }
+    });
+
+    console.log("PROFILE FOUND:", profile);
+
+    if (!profile) {
+      console.log("NO DRIVER PROFILE FOUND FOR USER:", actor.id);
+      throw notFound("Driver profile not found");
+    }
+
+    const updated = await this.prisma.driverProfile.update({
+      where: { id: profile.id },
+      data: { status },
+      include: { vehicle: true }
+    });
+
+    console.log("UPDATED PROFILE:", updated);
+
+    return updated;
   }
+
 
   verify(driverId: string) {
     return this.prisma.driverProfile.update({ where: { id: driverId }, data: { verifiedAt: new Date() }, include: { user: true, vehicle: true } });

@@ -17,9 +17,9 @@ export function LoginForm() {
     <form className="grid gap-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
       <div className="grid gap-2"><Label>Email</Label><Input type="email" {...form.register("email")} />{form.formState.errors.email ? <p className="text-sm text-rose-600">{form.formState.errors.email.message}</p> : null}</div>
       <div className="grid gap-2"><Label>Password</Label><Input type="password" {...form.register("password")} /></div>
-      {mutation.isError ? <p className="text-sm text-rose-600">Invalid credentials.</p> : null}
+      {mutation.isError ? <p className="text-sm text-rose-400">Invalid credentials.</p> : null}
       <Button disabled={mutation.isPending}>{mutation.isPending ? "Signing in..." : "Sign in"}</Button>
-      <div className="flex justify-between text-sm"><Link href="/forgot-password" className="text-indigo-600">Forgot password?</Link><Link href="/register" className="text-indigo-600">Create account</Link></div>
+      <div className="flex justify-between text-sm"><Link href="/forgot-password" className="text-zinc-400 hover:text-white transition-colors duration-300 hover:underline">Forgot password?</Link><Link href="/register" className="text-zinc-400 hover:text-white transition-colors duration-300 hover:underline">Create account</Link></div>
     </form>
   );
 }

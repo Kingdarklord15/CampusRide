@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Source_Serif_4, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
 import "./globals.css";
 
-const displayFont = Playfair_Display({
+const displayFont = Inter({
   subsets: ["latin"],
   variable: "--font-display",
 });
 
-const bodyFont = Source_Serif_4({
+const bodyFont = Inter({
   subsets: ["latin"],
   variable: "--font-body",
 });
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable} font-body antialiased min-h-screen bg-white text-black`}>
+      <body className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable} font-body antialiased min-h-screen bg-background text-foreground`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

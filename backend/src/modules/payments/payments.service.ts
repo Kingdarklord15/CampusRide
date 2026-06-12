@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { PaymentStatus, PrismaClient } from "@prisma/client";
+import type { AuthUser } from "../../middleware/auth.middleware.js";
 
 export class PaymentsService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -15,8 +16,26 @@ export class PaymentsService {
     });
   }
 
-  history() {
-    return this.prisma.payment.findMany({ include: { ride: true }, orderBy: { createdAt: "desc" } });
+  async history(actor: AuthUser) {
+    if (actor.role === "ADMIN") {
+      return this.prisma.payment.findMany({ include: { ride: true }, orderBy: { createdAt: "desc" } });
+    }
+    if (actor.role === "PASSENGER") {
+      const passenger = await this.prisma.passengerProfile.findUnique({ where: { userId: actor.id } });
+      if (!passenger) return [];
+      return this.prisma.payment.findMany({
+        where: { ride: { passengerProfileId: passenger.id } },
+        include: { ride: true },
+        orderBy: { createdAt: "desc" }
+      });
+    }
+    const driver = await this.prisma.driverProfile.findUnique({ where: { userId: actor.id } });
+    if (!driver) return [];
+    return this.prisma.payment.findMany({
+      where: { ride: { driverProfileId: driver.id } },
+      include: { ride: true },
+      orderBy: { createdAt: "desc" }
+    });
   }
 
   updateStatus(paymentId: string, status: PaymentStatus) {

@@ -12,5 +12,5 @@ export const paymentsRoutes = Router();
 
 paymentsRoutes.use(authenticate);
 paymentsRoutes.post("/", validate(createPaymentSchema), controller.create);
-paymentsRoutes.get("/", authorize("ADMIN"), controller.history);
+paymentsRoutes.get("/", controller.history);
 paymentsRoutes.patch("/:paymentId/status", authorize("ADMIN"), validate(paymentStatusSchema), controller.updateStatus);

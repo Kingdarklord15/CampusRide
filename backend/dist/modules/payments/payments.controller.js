@@ -5,6 +5,6 @@ export class PaymentsController {
         this.service = service;
     }
     create = async (req, res) => created(res, await this.service.createMockUpi(req.body));
-    history = async (_req, res) => ok(res, await this.service.history());
+    history = async (req, res) => ok(res, await this.service.history(req.user));
     updateStatus = async (req, res) => ok(res, await this.service.updateStatus(String(req.params.paymentId), req.body.status));
 }

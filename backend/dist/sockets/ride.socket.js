@@ -1,6 +1,7 @@
 import { prisma } from "../config/prisma.js";
 export const registerRideSocket = (io, socket) => {
     socket.on("ride:requested", async (rideId) => {
+        console.log("RIDE REQUESTED:", rideId);
         const ride = await prisma.ride.findUnique({ where: { id: rideId }, include: { passengerProfile: true } });
         if (!ride)
             return socket.emit("socket:error", { message: "Ride not found" });

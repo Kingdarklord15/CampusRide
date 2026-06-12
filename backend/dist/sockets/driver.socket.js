@@ -8,6 +8,7 @@ export const registerDriverSocket = (io, socket) => {
             where: { userId: user.id },
             data: { status: "ONLINE", currentLatitude: payload?.latitude, currentLongitude: payload?.longitude }
         });
+        console.log("DRIVER JOINED ROOM:", driver.id);
         socket.join("drivers:available");
         socket.join(`driver:${driver.id}`);
         io.to("role:admin").emit("driver:online", driver);

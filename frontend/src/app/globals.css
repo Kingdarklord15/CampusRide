@@ -3,17 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 32%;
-  --accent: 0 0% 0%;
-  --accent-foreground: 0 0% 100%;
-  --border: 0 0% 0%;
-  --border-light: 0 0% 90%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
-  --ring: 0 0% 0%;
+  --background: #050505;
+  --foreground: #ffffff;
+
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+
+  --muted: #111111;
+  --muted-foreground: #9ca3af;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.04);
+
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+
+  --secondary: #111111;
+  --secondary-foreground: #ffffff;
+
+  --accent: #151515;
+  --accent-foreground: #ffffff;
 }
 
 * {
@@ -21,7 +30,26 @@
 }
 
 body {
-  @apply bg-white text-black antialiased;
+  @apply bg-background text-foreground antialiased;
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(255, 255, 255, 0.08),
+      transparent 50%
+    ),
+    #050505;
+  background-attachment: fixed;
+}
+
+/* Glass Card styling utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* Texture Pattern Overlays */
@@ -30,16 +58,16 @@ body {
     0deg,
     transparent,
     transparent 1px,
-    #000000 1px,
-    #000000 2px
+    rgba(255, 255, 255, 0.04) 1px,
+    rgba(255, 255, 255, 0.04) 2px
   );
   background-size: 100% 4px;
 }
 
 .bg-pattern-grid {
   background-image:
-    linear-gradient(#00000008 1px, transparent 1px),
-    linear-gradient(90deg, #00000008 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -48,8 +76,8 @@ body {
     45deg,
     transparent,
     transparent 40px,
-    #00000008 40px,
-    #00000008 42px
+    rgba(255, 255, 255, 0.03) 40px,
+    rgba(255, 255, 255, 0.03) 42px
   );
 }
 
@@ -62,8 +90,8 @@ body {
     90deg,
     transparent,
     transparent 1px,
-    #ffffff 1px,
-    #ffffff 2px
+    rgba(255, 255, 255, 0.05) 1px,
+    rgba(255, 255, 255, 0.05) 2px
   );
   background-size: 4px 100%;
 }
@@ -71,11 +99,130 @@ body {
 .bg-pattern-radial-cta {
   background-image: radial-gradient(
     circle at top center,
-    #ffffff,
+    rgba(255, 255, 255, 0.1),
     transparent 70%
   );
 }
 
 .focus-ring {
-  @apply focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-black focus-visible:outline-offset-[2px];
+  @apply focus-visible:outline focus-visible:outline-[2px] focus-visible:outline-white focus-visible:outline-offset-[2px];
+}
+
+/* Monochromatic Dark Theme Utility Overrides */
+.bg-white {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(20px);
+}
+.bg-white\/80 {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(20px);
+}
+.text-black {
+  color: #ffffff !important;
+}
+.text-zinc-900 {
+  color: #ffffff !important;
+}
+.text-zinc-800 {
+  color: #f4f4f5 !important;
+}
+.text-zinc-700 {
+  color: #e4e4e7 !important;
+}
+.text-zinc-600 {
+  color: #a1a1aa !important;
+}
+.text-zinc-500 {
+  color: #71717a !important;
+}
+.bg-zinc-50, .bg-zinc-50\/50 {
+  background-color: rgba(255, 255, 255, 0.01) !important;
+}
+.bg-zinc-100 {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+.bg-zinc-200 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.border-black {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.border-zinc-100 {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+.border-zinc-200 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Monochromatic Accent overrides (indigo, emerald, purple) */
+.bg-indigo-600, .bg-indigo-700, .bg-indigo-800 {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+.hover\:bg-indigo-700:hover, .hover\:bg-indigo-800:hover {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+.text-indigo-600, .text-indigo-700 {
+  color: #ffffff !important;
+}
+.bg-indigo-50, .bg-indigo-100 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+.text-emerald-600, .text-emerald-700 {
+  color: #a1a1aa !important;
+}
+.bg-emerald-50, .bg-emerald-100 {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #ffffff !important;
+}
+.bg-purple-100 {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #ffffff !important;
+}
+.text-purple-600 {
+  color: #ffffff !important;
+}
+.text-rose-600 {
+  color: #f87171 !important;
+}
+
+/* Force global border radius values for cards/modals/inputs */
+.rounded-2xl {
+  border-radius: 28px !important;
+}
+.rounded-3xl {
+  border-radius: 28px !important;
+}
+.rounded-xl {
+  border-radius: 24px !important;
+}
+.rounded-lg {
+  border-radius: 18px !important;
+}
+.rounded-md {
+  border-radius: 18px !important;
+}
+
+/* Dark mode Leaflet Map popups and widgets */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: #0a0a0a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.leaflet-bar a {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.leaflet-bar a:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.leaflet-container {
+  background-color: #050505 !important;
+}
+/* Subtle dark filter on map tiles so it feels dark-themed */
+.leaflet-tile-container {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }

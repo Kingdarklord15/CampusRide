@@ -10,7 +10,7 @@ export const errorHandler = (error, _req, res, _next) => {
     }
     const statusCode = error instanceof AppError ? error.statusCode : error.statusCode ?? 500;
     const code = error instanceof AppError ? error.code : error.code ?? "INTERNAL_ERROR";
-    const message = error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Validation Failed";
     const details = error.details;
     if (statusCode >= 500)
         logger.error(message, error);

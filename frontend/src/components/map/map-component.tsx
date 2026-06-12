@@ -78,7 +78,7 @@ export default function MapComponent({
         pickupMarker.setLatLng([pickupLat, pickupLng]);
       } else {
         const customIcon = L.divIcon({
-          className: "bg-indigo-600 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md",
+          className: "bg-white w-6 h-6 rounded-full border border-black flex items-center justify-center text-black text-xs font-bold shadow-md",
           html: "P",
           iconSize: [24, 24],
         });
@@ -102,7 +102,7 @@ export default function MapComponent({
         dropoffMarker.setLatLng([dropoffLat, dropoffLng]);
       } else {
         const customIcon = L.divIcon({
-          className: "bg-emerald-600 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md",
+          className: "bg-zinc-850 w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-white text-xs font-bold shadow-md",
           html: "D",
           iconSize: [24, 24],
         });
@@ -125,7 +125,7 @@ export default function MapComponent({
         driverMarker.setLatLng([driverLat, driverLng]);
       } else {
         const customIcon = L.divIcon({
-          className: "bg-yellow-500 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-md animate-bounce",
+          className: "bg-white w-6 h-6 rounded-full border border-black flex items-center justify-center text-xs font-bold shadow-md animate-bounce",
           html: "🚗",
           iconSize: [24, 24],
         });
@@ -152,7 +152,7 @@ export default function MapComponent({
       if (routeLine) {
         routeLine.setLatLngs(latlngs);
       } else {
-        const line = L.polyline(latlngs, { color: "#4f46e5", weight: 4, opacity: 0.8 }).addTo(map);
+        const line = L.polyline(latlngs, { color: "#ffffff", weight: 3, opacity: 0.9 }).addTo(map);
         setRouteLine(line);
       }
 
@@ -165,5 +165,5 @@ export default function MapComponent({
     }
   }, [map, pickupLat, pickupLng, dropoffLat, dropoffLng]);
 
-  return <div id="campus-ride-map" className="w-full h-full rounded-2xl overflow-hidden border border-zinc-100 shadow-sm min-h-[350px]" />;
+  return <div id="campus-ride-map" className="w-full h-full rounded-xl overflow-hidden border border-white/8 shadow-glass min-h-[350px] bg-white/[0.02] backdrop-blur-md" />;
 }

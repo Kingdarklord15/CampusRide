@@ -3,14 +3,14 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const buttonVariants = cva("inline-flex items-center justify-center gap-2 rounded-none text-xs font-mono font-semibold tracking-widest uppercase transition-colors duration-100 focus-ring disabled:pointer-events-none disabled:opacity-50", {
+const buttonVariants = cva("inline-flex items-center justify-center gap-2 rounded-md text-xs font-mono font-semibold tracking-widest uppercase transition-all duration-300 focus-ring disabled:pointer-events-none disabled:opacity-50 active:scale-95", {
   variants: {
     variant: {
-      default: "bg-black text-white border-2 border-black hover:bg-white hover:text-black",
-      secondary: "bg-zinc-100 text-black border-2 border-zinc-100 hover:bg-black hover:text-white hover:border-black",
-      outline: "border-2 border-black bg-transparent text-black hover:bg-black hover:text-white",
-      ghost: "bg-transparent text-black hover:underline hover:bg-zinc-100",
-      danger: "bg-white text-black border-2 border-black hover:bg-black hover:text-white line-through hover:no-underline"
+      default: "bg-white text-black hover:scale-[1.02] hover:bg-white/90 shadow-md shadow-white/5",
+      secondary: "bg-white/5 text-white border border-white/8 hover:bg-white/10 hover:border-white/20 hover:scale-[1.02]",
+      outline: "border border-white/10 bg-transparent text-white hover:bg-white/5 hover:border-white/20 hover:scale-[1.02]",
+      ghost: "bg-transparent text-white hover:bg-white/5 hover:text-white",
+      danger: "bg-rose-950/20 text-rose-200 border border-rose-500/20 hover:bg-rose-950/40 hover:border-rose-500/40 hover:scale-[1.02]"
     },
     size: { default: "h-11 px-6", sm: "h-9 px-4", lg: "h-12 px-8 text-sm", icon: "h-11 w-11" }
   },

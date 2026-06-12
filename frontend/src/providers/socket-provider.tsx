@@ -34,5 +34,17 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, [token, setStatus, setActiveRide, addPendingRequest, removePendingRequest, pushNotification]);
 
+  const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    if (!token || user?.role !== "DRIVER") return;
+    const socket = connectSocket();
+    if (status === "ONLINE") {
+      socket.emit("driver:online");
+    } else {
+      socket.emit("driver:offline");
+    }
+  }, [token, status, user]);
+
   return children;
 }

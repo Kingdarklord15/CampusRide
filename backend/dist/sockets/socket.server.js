@@ -27,6 +27,7 @@ export const createSocketServer = (server) => {
         }
     });
     io.on("connection", (socket) => {
+        console.log("SOCKET CONNECTED:", socket.id);
         registerDriverSocket(io, socket);
         registerRideSocket(io, socket);
         registerNotificationSocket(io, socket);

@@ -14,7 +14,7 @@ export function ForgotPasswordForm() {
   const form = useForm<z.infer<typeof forgotPasswordSchema>>({ resolver: zodResolver(forgotPasswordSchema), defaultValues: { email: "" } });
   return (
     <form className="grid gap-4" onSubmit={form.handleSubmit(() => toast({ title: "Reset link queued", description: "Password reset support can be connected to the backend email provider." }))}>
-      <div className="grid gap-2"><Label>Email</Label><Input type="email" {...form.register("email")} />{form.formState.errors.email ? <p className="text-sm text-rose-600">{form.formState.errors.email.message}</p> : null}</div>
+      <div className="grid gap-2"><Label>Email</Label><Input type="email" {...form.register("email")} />{form.formState.errors.email ? <p className="text-sm text-rose-400">{form.formState.errors.email.message}</p> : null}</div>
       <Button>Send reset link</Button>
     </form>
   );

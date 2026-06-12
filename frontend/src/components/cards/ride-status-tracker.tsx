@@ -6,14 +6,14 @@ const steps: RideStatus[] = ["REQUESTED", "ACCEPTED", "DRIVER_ARRIVING", "IN_PRO
 export function RideStatusTracker({ status }: { status: RideStatus }) {
   const current = steps.indexOf(status);
   return (
-    <div className="grid gap-3 rounded-lg border bg-white p-5">
+    <div className="grid gap-4 rounded-xl border border-white/8 bg-white/[0.03] p-6 shadow-glass backdrop-blur-xl">
       {steps.map((step, index) => (
         <div key={step} className="flex items-center gap-3">
-          <div className={cn("h-3 w-3 rounded-full", index <= current ? "bg-indigo-600" : "bg-zinc-200")} />
-          <p className={cn("text-sm", index <= current ? "font-medium text-slate-900" : "text-zinc-500")}>{step.replaceAll("_", " ")}</p>
+          <div className={cn("h-2.5 w-2.5 rounded-full transition-all duration-300", index <= current ? "bg-white shadow-md shadow-white/30" : "bg-white/10")} />
+          <p className={cn("text-xs font-mono uppercase tracking-wider", index <= current ? "font-bold text-white" : "text-zinc-500")}>{step.replaceAll("_", " ")}</p>
         </div>
       ))}
-      {status === "CANCELLED" ? <p className="text-sm font-medium text-rose-600">Ride cancelled</p> : null}
+      {status === "CANCELLED" ? <p className="text-xs font-bold font-mono uppercase tracking-wider text-rose-400 mt-2">Ride cancelled</p> : null}
     </div>
   );
 }
