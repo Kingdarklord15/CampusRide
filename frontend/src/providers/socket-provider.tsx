@@ -10,6 +10,7 @@ import type { Notification, Ride } from "@/types";
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((state) => state.accessToken);
+  const status = useDriverStore((state) => state.status);
   const setStatus = useDriverStore((state) => state.setStatus);
   const setActiveRide = useRideStore((state) => state.setActiveRide);
   const addPendingRequest = useRideStore((state) => state.addPendingRequest);
